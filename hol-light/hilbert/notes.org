@@ -1,0 +1,92 @@
+<2012-01-10 Tue>
+Problems with lift_theorem: The inital use of rewriting in the final line of the the lift_theorem function causes some problems. For instance, suppose we want to lift the theorem:
+
+`!p P. (\P. (let Q,a,a' = dest_half_plane_pt p in
+              ~on_line P a /\ on_plane P a'
+              /\ (~(P = Q) ==> ~(?R. on_line R a /\ between P R Q)))) P
+       ==> on_plane P (let P,a,a' = dest_half_plane_pt p in a')`
+
+Here, the lambda expression is to be lifted to an appropriate function. However, the rewriter will first eliminate the lambda using beta-reduction after which it is unable to lift. This can be fixed by changing the first rewrite with the well-definedness theorem to a pure rewrite in the definition of lift_theorem. The alternative, however, is to make sure the rewriter won't eliminate the lambda. Thus, we instead lift the theorem:
+
+`!p. let ohp = \P. (let Q,a,a' = dest_half_plane_pt p in
+                         ~on_line P a /\ on_plane P a'
+                         /\ (~(P = Q)
+                         ==> ~(?R. on_line R a /\ between P R Q))) in
+       ohp P ==> on_plane P (let P,a,a' = dest_half_plane_pt p in a')`
+
+* <2013-01-09 Wed>
+  Turns out this wasn't an issue at all! I just had the arguments in a silly order.
+
+<2012-01-10 Tue>
+ASSUME_TAC and MP_TAC THEN DISCH_TAC are not equivalent. The latter will put a hypothesis into the assumption. This can affect rewriting and simplification. In particular, without the hypothesis, any free-variables in the conclusion will be universally quantified by the rewriter. For an example of the consequences of this, consider what happens when two specialised instances of the same theorem are ASSUMEd, and then we use Petros' assumption rewriting tactic. In this case, both both theorems will be rewritten to T! I mention this very briefly in my thesis: you have to be aware that a hypothesis has its own assumptions!
+
+<2012-01-13 Fri>
+JRH's parser hacks are documented changes to the standard pa_j syntax file. They cause Ocaml to think that the only upper-case identifier are those which begin with an uppercase letter and are then followed entirely by lowercase letters. You can see this from lines 61 through 81. 
+
+Line 406 defines '`' as a quotation symbol, and the quotation expander "tot" is registered in system.ml.4
+
+I've rehacked this so that Ocaml assumes that most module identifiers are either lower or uppercase. The one exception is the place which would lead to ambiguity: if "FooBar" in "FooBar.x" is parsed as a lower-case identifier, then this would be a record access.
+
+<2012-02-01 Wed>
+The "set" command in Mizarlight is not appropriate for defining local functions. I have attempted to fix by modifying the equality that is added into the hypotheses to provide the local definition. Instead of being a straight equality, I generalise all variables which are free in both the goal and not generalisable in the goal hypotheses, so that if the definition is supposed to be a function, then its argument will be generalised. This should be more general than ordinary function definition, since we can now have equations such as
+
+!P. foo A P <=> bar A P
+
+* <2013-01-09 Wed> 
+  I still think this is probably a good idea. I just don't think I ever ended up using it.
+
+<2012-02-01 Wed>
+The last commit adds incidence_meta_simp.ml, which is a much simpler but substantially slower implementation of the incidence rules. There is no laziness, and no lists carried around. This greatly simplifies the implementation of incidence_chain which has also been changed.
+
+obviously is now a primitive taking a function from chains to chains. The tactic takes *all* goal hypotheses and adds them into a chain. At a certain depth, all discovered theorems are added as justification theorems. This now removes the dependency on monitior, which is now generally only needed for investigating the proof space at the top-level (it still needs concurrency support). The refactoring means we can easily add new Mizar light primitives which use the justification theorems to drive the chain. It also means that we can use chains in non-interactive proofs. I am refactoring all proofs so far to the non-interactive style.
+
+<2012-02-15 Wed>
+MESON sometimes performs really badly at using its arguments, even if only a few cases of MATCH_MP would be required. Something else is going on here, since it can work sometimes if you first MP_TAC the arguments and then call MESON.with *no* arguments.
+
+<2012-02-15 Wed>
+let_TAC seems not to like declarative proof, since it introduces new variables. Maybe a version where you can "consider" the variables is in order? 
+
+<2012-02-16 Thu>
+Name clash: The "cases" keyword for Mizar light clashes with the function from ind_types.ml
+Name clash: The "proof" keyword clashes with a local variable name in one of John's files. I just changed the name of the variable. No biggie.
+
+The parameters to the fix keyword in Mizarlight need type annotations. It is true that each of the terms in the argument list are put through the custom lexer, which uses context information to add types, but in a *fix*, new variables are being introduced and there is no context in which to infer types. You'd have to pull such context from the variables bound by the universal quantifier (should be trivial). Same applies to "consider", I believe, but not to "take."
+
+<2012-04-13 Fri>
+Improving discovery performance: e.g. make it so that colcol will fail after partial application with two arguments which intersect in less than two points. Then in the discoverer, lift the function over cols and cols, and then bind into a function which takes the partial application, lifts it over neqs, and then takes only the *first* result. 
+
+<2012-08-12 Sun>
+ARITH_TAC is non-monotonic.
+
+g `M + 1 < CARD Ps - 1 
+  /\ (g (f M) < g P /\ g P < g (f (CARD Ps - 1)) \/
+      g (f (CARD Ps - 1)) < g P /\ g P < g (f M)) 
+  /\ S = {M | between (f M) P (f (CARD Ps - 1))} INTER (0..CARD Ps - 1)
+  ==> ~(g P < g (f M) /\ g (f M) < g (f (M + 1)) \/
+        g (f (M + 1)) < g (f M) /\ g (f M) < g P)`
+
+says no contradictions, but
+
+g `M + 1 < CARD Ps - 1 
+  /\ (g (f M) < g P /\ g P < g (f (CARD Ps - 1)) \/
+      g (f (CARD Ps - 1)) < g P /\ g P < g (f M))
+  ==> ~(g P < g (f M) /\ g (f M) < g (f (M + 1)) \/
+        g (f (M + 1)) < g (f M) /\ g (f M) < g P)`
+
+<2012-08-14 Tue>
+mutual_simp is very effective in forward proofs. 
+
+<2012-09-14 Fri>
+I'm pretty sure I need to drop the assumption "~on_polyseg Qs goal" from squeeze. The new proof has an extra case-split, and deals with the case that Qs is a singleton right from the start.
+
+* <2013-01-09 Wed> 
+  Yep, turns out I did.
+
+<2012-09-16 Sun>
+I only realised the need for certain case-splits when the discoverer wasn't producing triangles that I expected to exist. Consider same_side_wall_connected. The case that hand' s and Y might lie on a line, and that this would require its own proof, was unexpected.
+
+* <2013-01-09 Wed>
+  This didn't make it into the thesis. I'm pretty sure the problem is that my assumptions to "squeeze" are too strong. I have assumed a triangle unnecessarily.
+
+<2012-09-29 Sat>
+Simplified polygon_move, in the case that we go around a corner: we go to s'', then to s. From s, we must have line of sight to P2P3. We just need to use squeeze to obtain the point with which we have line-of-sight, rather than picking a random point in P2P3 and moving towards P2.
