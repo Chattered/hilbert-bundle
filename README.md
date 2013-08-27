@@ -7,8 +7,8 @@ Bundled are versions of Ocaml, batteries, camlp5, hol light and ounit that shoul
 
 After installing, run with:
 
-> cd hilbert-bundle/hol-light
-> make
-> ocaml
-> # #use "hol_finite.ml";;
-> # #use "hilbert/hilbert.ml";;
+    cd hilbert-bundle/hol-light
+    make
+    ocaml
+    # #use "hol_finite.ml";;
+    # #use "hilbert/hilbert.ml";;
