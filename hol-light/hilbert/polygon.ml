@@ -4905,3 +4905,64 @@ let jordan_poly2 = theorem
     [REMOVE_THEN "13" MP_TAC
         THEN REWRITE_TAC [IN_INSERT;NOT_IN_EMPTY] THEN STRIP_TAC
         THEN ASM_MESON_TAC [seg_connected_sym;seg_connected_trans]]];;
+
+(* If all vertices of a polygon lie in a half-plane, then the polygon lies in that half-plane *)
+let vertices_on_half_plane = theorem 
+  "!Ps. (!P. MEM P Ps ==> on_half_plane hp P) ==> !P. on_polyseg Ps P ==> on_half_plane hp P"
+  [fix ["Ps:point list"]
+  ;unfolding by [on_polyseg]
+  ;assume "!P. MEM P Ps ==> on_half_plane hp P" at [0]
+  ;fix ["P:point"]
+  ;so assume "?x y. MEM (x,y) (ADJACENT Ps) /\ between x P y"
+  ;so consider ["Q:point";"R:point"] st "MEM (Q,R) (ADJACENT Ps) /\ between Q P R" at [1;2]
+  ;hence "on_half_plane hp Q /\ on_half_plane hp R" from [0;1] by [ADJACENT_MEM2]
+  ;qed from [2] by [bet_on_half_plane2]];;
+
+let line_of_half_plane_on_plane = theorem
+  "!'a hp. (!P. on_half_plane hp P ==> on_plane P 'a)
+   ==> !P. on_line P (line_of_half_plane hp) ==> on_plane P 'a"
+  [fix ["'a:plane";"hp:half_plane"]
+  ;consider ["P:point"] st "on_half_plane hp P" at [0] by [half_plane_not_empty]
+  ;consider ["Q:point";"R:point"] st
+     "~(Q=R) /\ on_line Q (line_of_half_plane hp) /\ on_line R (line_of_half_plane hp)"
+     at [1] by [g13a]
+  ;so consider ["X:point";"Y:point"] st "between Q P X /\ between R P Y"
+     by [g22;half_plane_not_on_line] from [0] at [2]
+  ;hence "on_half_plane hp X /\ on_half_plane hp Y" by [bet_on_half_plane] from [0;1]
+  ;so assume "on_plane P 'a /\ on_plane X 'a /\ on_plane Y 'a" from [0]
+  ;hence "on_plane Q 'a /\ on_plane R 'a" by [g16;g21] from [2]
+  ;qed from [1] by [g16]];;
+
+let other_half_plane = theorem
+  "!'a hp. (!P. on_half_plane hp P ==> on_plane P 'a)
+   ==> ?hq. ~(hp = hq)
+            /\ line_of_half_plane hp = line_of_half_plane hq
+            /\ !P. on_plane P 'a 
+                   <=> on_line P (line_of_half_plane hp)
+                       \/ on_half_plane hp P 
+                       \/ on_half_plane hq P"
+  [fix ["'a:plane";"hp:half_plane"]
+  ;assume "!P. on_half_plane hp P ==> on_plane P 'a" at [0]
+  ;so consider ["hq:half_plane";"hr:half_plane"] st
+     "~(hq = hr)
+      /\ line_of_half_plane hp = line_of_half_plane hq
+      /\ line_of_half_plane hp = line_of_half_plane hr
+      /\ (!P. on_plane P 'a
+           <=> on_line P (line_of_half_plane hp)
+               \/ on_half_plane hq P
+               \/ on_half_plane hr P)"
+     using (K (MATCH_MP_TAC half_plane_cover) THEN' MESON_TAC)
+     by [line_of_half_plane_on_plane] at [1]
+  ;consider ["P:point"] st "on_half_plane hp P"
+     by [half_plane_not_empty] at [2]
+  ;per cases 
+    [[suppose "on_half_plane hq P"
+     ;hence "hp = hq" by [on_half_plane_disjoint] from [1;2] at [8]
+     ;take ["hr"]
+     ;qed from [1;8]]
+    ;[suppose "on_half_plane hr P"
+     ;hence "hp = hr" by [on_half_plane_disjoint] from [1;2] at [8]
+     ;take ["hq"]
+     ;qed from [1;8]]]
+    from [0;1;2] by [half_plane_not_on_line]];;
+       
