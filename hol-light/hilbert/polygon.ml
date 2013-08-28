@@ -4933,36 +4933,3 @@ let line_of_half_plane_on_plane = theorem
   ;hence "on_plane Q 'a /\ on_plane R 'a" by [g16;g21] from [2]
   ;qed from [1] by [g16]];;
 
-let other_half_plane = theorem
-  "!'a hp. (!P. on_half_plane hp P ==> on_plane P 'a)
-   ==> ?hq. ~(hp = hq)
-            /\ line_of_half_plane hp = line_of_half_plane hq
-            /\ !P. on_plane P 'a 
-                   <=> on_line P (line_of_half_plane hp)
-                       \/ on_half_plane hp P 
-                       \/ on_half_plane hq P"
-  [fix ["'a:plane";"hp:half_plane"]
-  ;assume "!P. on_half_plane hp P ==> on_plane P 'a" at [0]
-  ;so consider ["hq:half_plane";"hr:half_plane"] st
-     "~(hq = hr)
-      /\ line_of_half_plane hp = line_of_half_plane hq
-      /\ line_of_half_plane hp = line_of_half_plane hr
-      /\ (!P. on_plane P 'a
-           <=> on_line P (line_of_half_plane hp)
-               \/ on_half_plane hq P
-               \/ on_half_plane hr P)"
-     using (K (MATCH_MP_TAC half_plane_cover) THEN' MESON_TAC)
-     by [line_of_half_plane_on_plane] at [1]
-  ;consider ["P:point"] st "on_half_plane hp P"
-     by [half_plane_not_empty] at [2]
-  ;per cases 
-    [[suppose "on_half_plane hq P"
-     ;hence "hp = hq" by [on_half_plane_disjoint] from [1;2] at [8]
-     ;take ["hr"]
-     ;qed from [1;8]]
-    ;[suppose "on_half_plane hr P"
-     ;hence "hp = hr" by [on_half_plane_disjoint] from [1;2] at [8]
-     ;take ["hq"]
-     ;qed from [1;8]]]
-    from [0;1;2] by [half_plane_not_on_line]];;
-       
