@@ -4933,3 +4933,35 @@ let line_of_half_plane_on_plane = theorem
   ;hence "on_plane Q 'a /\ on_plane R 'a" by [g16;g21] from [2]
   ;qed from [1] by [g16]];;
 
+let bet_not_on_half_plane = theorem
+  "!hp P Q R. 
+   (!P. on_half_plane hp P ==> on_plane P 'a) 
+   /\ on_half_plane hp P /\ on_plane Q 'a /\ ~on_half_plane hp Q /\ between P Q R
+   ==> ~(on_half_plane hp R) /\ ~on_line R (line_of_half_plane hp)"
+  [fix ["hp:half_plane";"P:point";"Q:point";"R:point"]
+  ;assume "(!P. on_half_plane hp P ==> on_plane P 'a)" at [0]
+  ;assume "on_half_plane hp P" at [1]
+  ;assume "on_plane Q 'a /\ ~on_half_plane hp Q" at [2]
+  ;assume "between P Q R" at [3]
+  ;per cases 
+    [[suppose "on_line Q (line_of_half_plane hp)" at [4]
+     ;hence "~(on_half_plane hp R)"
+       from [0;1;2;3] by [on_half_plane_not_bet] at [5]
+     ;otherwise assume "on_line R (line_of_half_plane hp)"
+     ;hence "on_line P (line_of_half_plane hp)" 
+       from [3;4] by [g12;g21]
+     ;qed from [1] by [half_plane_not_on_line]]
+    ;[suppose "~on_line Q (line_of_half_plane hp)" at [4]
+     ;so consider ["S:point"] 
+       st "on_line S (line_of_half_plane hp)
+           /\ between P S Q"
+       from [0;1;2] by [on_half_plane_not_bet] at [5]
+     ;hence "between P S R" at [6] from [3]
+       using ORDER_TAC `{P:point,Q,R,S}`
+     ;hence "~on_half_plane hp R"
+       from [0;1;5] by [on_half_plane_not_bet]
+     ;otherwise assume "on_line R (line_of_half_plane hp)"
+     ;hence "on_line P (line_of_half_plane hp)" 
+       from [5;6] by [g12;g21]
+     ;qed from [1] by [half_plane_not_on_line]]]];;
+
