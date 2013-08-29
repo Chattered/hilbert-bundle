@@ -4965,3 +4965,105 @@ let bet_not_on_half_plane = theorem
        from [5;6] by [g12;g21]
      ;qed from [1] by [half_plane_not_on_line]]]];;
 
+g `!'a Ps. (!P. MEM P Ps ==> on_plane P 'a)
+           ==> ?hp. !P. (on_half_plane hp P ==> on_plane P 'a)
+	                /\ (MEM P Ps ==> on_half_plane hp P)`;;
+f (fix ["'a:plane"]);;
+e (LIST_INDUCT_TAC2 THEN TRY (POP_ASSUM (LABEL_TAC "0")));;
+  f (unfolding by [MEM]);;
+  f (consider ["A:point";"B:point";"C:point"] st
+       "on_plane A 'a /\ on_plane B 'a /\ on_plane C 'a
+        /\ ~(?a. on_line A a /\ on_line B a /\ on_line C a)"
+       by [plane_three] at [0]);;
+  f (so consider ["hp:half_plane"] 
+       st "on_line A (line_of_half_plane hp)
+           /\ on_line B (line_of_half_plane hp)
+           /\ on_half_plane hp C"
+       by [unique_half_plane]);;
+  f (qed from [0] by [half_plane_on_plane;g11_weak;g16]);;
+
+  f (assume "on_plane x 'a" at [0] by [MEM]);;
+  f (so consider ["y:point"]
+       st "~(x = y) /\ on_plane y 'a" at [1] by [plane_three;g11_weak]);;
+  f (so consider ["z:point"]
+       st "on_plane z 'a /\ ~(?a. on_line x a /\ on_line y a /\ on_line z a)"
+       from [0] by [plane_triangle] at [2]);;
+  f (so consider ["hp:half_plane"] 
+       st "on_line y (line_of_half_plane hp)
+           /\ on_line z (line_of_half_plane hp)
+           /\ on_half_plane hp x"
+       by [unique_half_plane] at [3]);;
+  f (hence "!P. on_line P (line_of_half_plane hp) ==> on_plane P 'a" from [1;2] by [g11_weak;g16]);;
+  f (unfolding by [MEM]);;
+  f (qed from [0;1;2;3] by [half_plane_on_plane]);;
+
+  (* HERE *)
+
+  f (assume "on_plane x 'a /\ on_plane y 'a
+             /\ !P. MEM P ys ==> on_plane P 'a" at [1] by [MEM]);;
+  f (so consider ["hp:half_plane"]
+       st "(!P. (on_half_plane hp P ==> on_plane P 'a))
+           /\ on_half_plane hp y
+           /\ (!P. MEM P ys ==> on_half_plane hp P)" 
+       from [0] by [MEM] at [2;3;4]);;
+  f (assume "~on_half_plane hp x" at [5]
+       from [2;3;4] using (K (REWRITE_TAC [MEM]) THEN' MESON_TAC));;
+  f (so consider ["X:point"] st "between y x X" by [g22] from [3;5] at [6]);;
+  f (hence "on_plane X 'a" from [1] by [g16;g21] at [7]);;
+  f (case "ys = []");;
+    f (tactics [FULL_REWRITE_TAC [MEM]]);;
+    f (consider ["Z:point"] st 
+	 "~(?a. on_line X a /\ on_line x a /\ on_line Z a) /\ on_plane Z 'a"
+	 from [1;6;7] by [BET_NEQS;plane_triangle] at [8]);;
+    f (obviously by_ncols 
+	 (so consider ["hq:half_plane"] 
+	    st "on_line X (line_of_half_plane hq) /\ on_line Z (line_of_half_plane hq) 
+             /\ on_half_plane hq x") from [6] by [unique_half_plane] at [9]);;
+    f (have "!P. on_line P (line_of_half_plane hq) ==> on_plane P 'a"
+	 by [g11_weak;g16] from [7;8;9]);;
+    f (hence "!P. on_half_plane hq P ==> on_plane P 'a"
+	 from [1;9] by [half_plane_on_plane] at [10]);;
+    f (have "on_half_plane hq y"
+	 from [6;9] by [BET_SYM;bet_on_half_plane]);;
+    f (qed from [9;10]);;
+  f (case "~(ys = [])");;
+    f (so consider ["y':point";"ys':point list"]
+	 st "ys = CONS y' ys'" by [list_CASES] at [8]);;
+    f (have "~on_half_plane hp X /\ ~on_line X (line_of_half_plane hp)"
+	 by [bet_not_on_half_plane;g21] at [9] from [1;2;3;5;6]);;
+    f (set "f Y = @Z. on_line Z (line_of_half_plane hp)
+                      /\ between Y Z X");;
+    f (have "!Y. MEM Y (CONS y ys) ==> on_line (f Y) (line_of_half_plane hp)
+                                       /\ between Y (f Y) X");;
+      f (fix ["Y:point"]);;
+      f (assume "MEM Y (CONS y ys)");;
+      f (hence "on_half_plane hp Y" by [MEM] from [3;4]);;
+      f (qed by [on_half_plane_not_bet] from [2;7;9]);;
+  f (consider ["g:num->point"] st
+       "ORDERING g (IMAGE f (set_of_list (CONS y ys)))" proof
+       [tactics [MATCH_MP_TAC theorem6
+		    THEN SIMP_TAC [FINITE_IMAGE;FINITE_SET_OF_LIST]
+		    THEN REWRITE_TAC [IMAGE;IN_SET_OF_LIST;IN_ELIM_THM;COLLINEAR]]
+       ;qed]);;
+  f (
+  f (hence "~on_half_plane hp X" at [7]);;
+    f (otherwise assume "on_half_plane hp X");;
+    f (qed from [3;5;6] by [bet_on_half_plane2]);;
+  f (have "~on_line X (line_of_half_plane hp)" at [8]);;
+    f (otherwise assume "on_line X (line_of_half_plane hp)" at [8]);;
+    f (case "on_line x (line_of_half_plane hp)");;
+      f (hence "on_line y (line_of_half_plane hp)" from [6;8] by [g12;g21]);;
+      f (qed by [half_plane_not_on_line] from [3]);; 
+    f (assume "~(y = y')"
+
+    f (case "~on_line x (line_of_half_plane hp)" at [9]);;
+      f (so consider ["R:point"] 
+	   st "on_line R (line_of_half_plane hp) /\ between y R x"
+	   by [on_half_plane_not_bet] from [1;2;3;5]);;
+
+
+ from [4] by [g12;g21]);;
+  f (have "on_plane X 'a");;
+    f (consider ["a:line"] st "on_line y a /\ on_line x a /\ on_line X a"
+	 from [4] by [g21]);;
+    f (qed from [1;4] by [MEM;BET_NEQS;g16]);;
