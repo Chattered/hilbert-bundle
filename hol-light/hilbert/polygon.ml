@@ -5022,9 +5022,20 @@ e (LIST_INDUCT_TAC2 THEN TRY (POP_ASSUM (LABEL_TAC "0")));;
     f (qed by [on_half_plane_not_bet] from [2;7;8]);;
   f (have "!Y. on_line Y (line_of_half_plane hp) ==> on_plane Y 'a"
        from [2] by [line_of_half_plane_on_plane] at [10]);;
-  f (case "SING (IMAGE f (set_of_list (CONS y ys)))");;
-    f (so consider ["fY:point"] st "IMAGE f (set_of_list (CONS y ys)) = {fY}"
-	 by [SING]);;
+  f (have "~(CARD (IMAGE f (set_of_list (CONS y ys))) = 0)" at [11]);;
+       f (otherwise assume "CARD (IMAGE f (set_of_list (CONS y ys))) = 0" at [11]);;
+       f (hence "IMAGE f (set_of_list (CONS y ys)) = {}"
+	    by [CARD_EQ_0;FINITE_SET_OF_LIST;FINITE_IMAGE]);;
+       f (qed using (SET_TAC o mutual_rewrite) by [IMAGE;IN_SET_OF_LIST;MEM]);;
+  f (set "Xs = IMAGE f (set_of_list (CONS y ys))");;
+  f (case "CARD Xs = 1");;
+    f (hence "Xs HAS_SIZE 1"
+	 using SIMP_TAC by [FINITE_HAS_SIZE;FINITE_SET_OF_LIST;FINITE_IMAGE]);;
+    e (POP_ASSUM MP_TAC);;
+    e (CONV_TAC (ONCE_DEPTH_CONV HAS_SIZE_CONV));;
+    e DISCH_TAC;;
+    f (so consider ["fY:point"] 
+	 st "Xs = {fY}");;
     f (hence "!Y. MEM Y (CONS y ys) ==> between Y fY X
                   /\ on_line fY (line_of_half_plane hp)" from [9] at [11]
 	 using (MAP_EVERY MP_TAC THEN' 
@@ -5046,10 +5057,53 @@ e (LIST_INDUCT_TAC2 THEN TRY (POP_ASSUM (LABEL_TAC "0")));;
     f (hence "!P. MEM P (CONS x (CONS y ys)) ==> on_half_plane hq P"
 	 from [6;11;14] by [MEM;bet_on_half_plane;BET_SYM]);;
     f (qed from [15]);;
+  f (case "2 <= CARD Xs" at [11]);;
+    f (consider ["g:num->point"] st
+         "ORDERING g Xs" at [12] proof
+         [unfolding
+	 ;tactics [MATCH_MP_TAC theorem6
+  		      THEN SIMP_TAC [FINITE_IMAGE;FINITE_SET_OF_LIST]
+		      THEN REWRITE_TAC [IMAGE;IN_SET_OF_LIST;IN_ELIM_THM;COLLINEAR]]
+	 ;qed from [9]]);;
+    f (have "~(0 = CARD Xs - 1) /\ 0 < CARD Xs /\ CARD Xs - 1 < CARD Xs"
+	 using ARITH_TAC_THMS from [11] at [13]);;
+    f (hence "~(g 0 = g (CARD Xs - 1))" by [ORDERING_INJ] from [12]);;
+    f (so consider ["Z:point"] st "between (g 0) (g (CARD Xs - 1)) Z"
+	 by [g22] at [14]);;
+    f (consider ["hq:half_plane"] 
+	 st "on_line X (line_of_half_plane hq)
+             /\ on_line Z (line_of_half_plane hq)
+             /\ on_half_plane hq (g 0)");;
+      f (have "g 0 IN Xs /\ g (CARD Xs - 1) IN Xs" by [ORDERING] from [12;13]);;
+      e (POP_ASSUM MP_TAC);;
+      e (USE_THEN "=" (fun x -> REWRITE_TAC [x;IMAGE;IN_ELIM_THM]));;
+      e DISCH_TAC;;
+      f (consider ["z:point";"z':point"] st
+	   "z IN set_of_list (CONS y ys) /\ g 0 = f z
+            /\ z' IN set_of_list (CONS y ys) /\ g (CARD Xs - 1) = f z'");;
+        e (USE_THEN "=" (fun x -> REWRITE_TAC [x;IMAGE;IN_ELIM_THM]));;
+	f qed;;
+      f (hence "on_line (g 0) (line_of_half_plane hp)
+                /\ on_line (g (CARD Xs - 1)) (line_of_half_plane hp)"
+	   at [15] from [9] by [IN_SET_OF_LIST]);;
+      f (hence "on_line Z (line_of_half_plane hp)"
+	   from [14] by [g12;g21]);;
+      f (obviously (by_ncols o Di.conjuncts)
+	   (hence "~(?a. on_line X a /\ on_line Z a /\ on_line (g 0) a)"
+	      from [8;14;15]));;
+      f (qed by [unique_half_plane]);;
+    e (DISCH_THEN (K ALL_TAC));;
+    f (take ["hq"]);;
+    
+    
+	 
+	 
+	 
+    f (hence "BOUNDS (g 0) (g (CARD Xs - 1)) Xs" from [12] 
+      f (have "?X. X IN IMAGE f (set_of_list (CONS y ys))");;
+        f (have "~(CARD (IMAGE f (set_of_list (CONS y ys))) = 0)"
+  	   using ARITH_TAC_THMS from [11]);;
+        f (qed by [CARD_EQ_0;MEMBER_NOT_EMPTY;FINITE_IMAGE;FINITE_SET_OF_LIST]);;
+  	   by [FINITE_IMAGE;FINITE_SET_OF_LIST;ORDERING_BOUNDS]);;
+    
 
-
-  f (consider ["g:num->point"] st
-       "ORDERING g (IMAGE f (set_of_list (CONS y ys)))" proof
-       [tactics [MATCH_MP_TAC theorem6
-		    THEN SIMP_TAC [FINITE_IMAGE;FINITE_SET_OF_LIST]
-		    THEN REWRITE_TAC [IMAGE;IN_SET_OF_LIST;IN_ELIM_THM;COLLINEAR]]
