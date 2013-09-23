@@ -5073,7 +5073,7 @@ e (LIST_INDUCT_TAC2 THEN TRY (POP_ASSUM (LABEL_TAC "0")));;
     f (consider ["hq:half_plane"] 
 	 st "on_line X (line_of_half_plane hq)
              /\ on_line Z (line_of_half_plane hq)
-             /\ on_half_plane hq (g 0)");;
+             /\ on_half_plane hq (g 0)" at [15]);;
       f (have "g 0 IN Xs /\ g (CARD Xs - 1) IN Xs" by [ORDERING] from [12;13]);;
       e (POP_ASSUM MP_TAC);;
       e (USE_THEN "=" (fun x -> REWRITE_TAC [x;IMAGE;IN_ELIM_THM]));;
@@ -5094,16 +5094,43 @@ e (LIST_INDUCT_TAC2 THEN TRY (POP_ASSUM (LABEL_TAC "0")));;
       f (qed by [unique_half_plane]);;
     e (DISCH_THEN (K ALL_TAC));;
     f (take ["hq"]);;
-    
-    
-	 
-	 
-	 
-    f (hence "BOUNDS (g 0) (g (CARD Xs - 1)) Xs" from [12] 
-      f (have "?X. X IN IMAGE f (set_of_list (CONS y ys))");;
-        f (have "~(CARD (IMAGE f (set_of_list (CONS y ys))) = 0)"
-  	   using ARITH_TAC_THMS from [11]);;
-        f (qed by [CARD_EQ_0;MEMBER_NOT_EMPTY;FINITE_IMAGE;FINITE_SET_OF_LIST]);;
-  	   by [FINITE_IMAGE;FINITE_SET_OF_LIST;ORDERING_BOUNDS]);;
-    
-
+    f (hence "on_half_plane hq (g (CARD Xs -1))" from [14] by [bet_on_half_plane;BET_SYM]
+	 at [16]);;
+    f (have "BOUNDS (g 0) (g (CARD Xs - 1)) Xs"
+	 from [12] by [FINITE_IMAGE;FINITE_SET_OF_LIST;IN_IMAGE;IN_SET_OF_LIST
+		      ;MEM;ORDERING_BOUNDS]);;
+    f (hence "!P. P IN Xs ==> on_half_plane hq P" at [17]);;
+      e (POP_ASSUM MP_TAC);;
+      e (REWRITE_TAC [BOUNDS;IN_DIFF;IN_INSERT;NOT_IN_EMPTY]);;
+      f (qed from [15;16] by [bet_on_half_plane2]);;
+    f (hence "!P. MEM P (CONS y ys) ==> on_half_plane hq P" at [18]);;
+      f (fix ["P:point"]);;
+      f (assume "MEM P (CONS y ys)" at [18]);;
+      f (hence "between P (f P) X" from [9] at [19]);;
+      f (have "f P IN Xs");;
+        e (ASM_REWRITE_TAC [IN_IMAGE;IN_SET_OF_LIST]);;
+        f (qed from [18]);;
+      f (hence "on_half_plane hq (f P)" from [17]);;
+      f (qed from [15;19] by [bet_on_half_plane;BET_SYM]);;
+   f (hence "on_half_plane hq y" by [MEM]);;
+   f (hence "on_half_plane hq x" from [6;15] by [bet_on_half_plane;BET_SYM]);;
+   f (hence "!P. MEM P (CONS x (CONS y ys)) ==> on_half_plane hq P"
+	from [18] by [MEM] at [19]);;
+   f (have "g 0 IN Xs /\ g (CARD Xs - 1) IN Xs");;
+     f (have "0 < CARD Xs /\ CARD Xs - 1 < CARD Xs" from [11] using ARITH_TAC_THMS);;
+     f (qed from [12] by [ORDERING]);;
+   f (hence "on_line (g 0) (line_of_half_plane hp) 
+             /\ on_line (g (CARD Xs - 1)) (line_of_half_plane hp)" at [20]);;
+     e (POP_ASSUM MP_TAC);;
+     e (ASM_REWRITE_TAC [IN_IMAGE;IN_SET_OF_LIST]);;
+     f (qed from [9]);;
+   f (hence "on_line Z (line_of_half_plane hp)"
+	from [14] by [g12;g16;g21] at [21]);;
+   f (hence "~(X=Z)" from [8] by [half_plane_not_on_line] at [22]);;
+   f (have "on_plane (g 0) 'a /\ on_plane Z 'a" from [2;14;20;21] 
+	by [line_of_half_plane_on_plane]);;
+   f (hence "!P. on_half_plane hq P ==> on_plane P 'a"
+	from [7;15;22] by [half_plane_on_plane;g16]);;
+   f (qed from [19]);;
+f (finished from [11] using ARITH_TAC_THMS);;
+let choose_half_plane_containing_points = top_thm ();;
