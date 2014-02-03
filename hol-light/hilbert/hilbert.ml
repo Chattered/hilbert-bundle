@@ -1,5 +1,6 @@
 #use "topfind";;
 #thread;;
+#require "batteries";;
 #require "monadlib";;
 #require "oUnit";;
 
