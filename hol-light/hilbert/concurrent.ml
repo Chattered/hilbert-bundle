@@ -97,7 +97,7 @@ struct
   module Hypwriter =
   struct
     include Monad.MakeWriter(Hypset)
-    let cmp = (*C Hypset.subset*) fun x y -> true
+    let cmp = C Hypset.subset
   end
 
   module Hypwriterm = Monad.Make(Hypwriter)
