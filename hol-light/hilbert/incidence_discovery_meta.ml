@@ -54,28 +54,27 @@ struct
 
     and ncols = lazy
        (next
-          (unique
+          (maxima
              (plus (filter is_ncol b)
                 (lift3t colncolncol cols (delay ncols) neqs'))))
              
     and eqs = lazy
       (next (plus
                (filter (is_eq o concl) b)
-               (unique
+               (maxima
                   (lsum (lift1 Ll.of_list
                            (lift3t coleq cols cols ncols))))))
 
     and neqs = lazy
      (next
-        (unique
+        (maxima
            (msum [neqs'
-                 ;conjuncts (rule1 ncolneq (delay ncols))])))
+                 ;conjuncts (rule1 ncolneq ncols)])))
 
     and neqs' = lazy
      (next
-        (unique
+        (maxima
            (msum [filter is_neq b
-                 ;conjuncts (rule1 ncolneq (filter is_ncol b))
                  ;lsum (lift1t Ll.of_list
                           (lift2t colncolneq (delay cols) (delay ncols)))])))
          
